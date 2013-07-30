@@ -9,20 +9,15 @@
 
 package org.sipfoundry.sipxconfig.callqueue;
 
-import java.util.Arrays;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import org.sipfoundry.sipxconfig.common.CoreContext;
-import org.sipfoundry.sipxconfig.common.User;
-import org.sipfoundry.sipxconfig.common.UserException;
 import org.sipfoundry.sipxconfig.setting.Setting;
 import org.sipfoundry.sipxconfig.test.IntegrationTestCase;
-import org.sipfoundry.sipxconfig.test.TestHelper;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
