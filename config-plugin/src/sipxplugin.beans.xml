@@ -9,10 +9,19 @@
    <bean id="callQueueHibernate" class="org.sipfoundry.sipxconfig.common.HibernateConfigurationPlugin">
     <property name="mappingResources">
       <list>
-        <value>com/sipfoundry/sipxconfig/callqueue/callqueue.hbm.xml</value>
+        <value>org/sipfoundry/sipxconfig/callqueue/callqueue.hbm.xml</value>
       </list>
     </property>
   </bean>
+
+  <bean id="callQueueI18n"
+	class="org.springframework.context.support.ResourceBundleMessageSource">
+	<property name="basename" value="sipxcallqueue" />
+  </bean>
+  
+  <bean id="freeswitchCallCenterConfig" class="org.sipfoundry.sipxconfig.callqueue.CallCenterConfiguration" parent="freeswitchConfigFile">
+    <property name="callQueueContext" ref="callQueueContext" />
+  </bean>  
 
   <bean id="callQueueContext" class="org.springframework.aop.framework.ProxyFactoryBean" parent="abstractDao">
     <property name="proxyInterfaces" value="org.sipfoundry.sipxconfig.callqueue.CallQueueContext"/>
@@ -56,6 +65,7 @@
 
   <bean id="callqueueHook" class="org.sipfoundry.sipxconfig.site.SimplePluginHook">
     <property name="hookId" value="CallQueueHook"/>
+    <property name="featureId" value="callqueue"/>
   </bean>
 
 </beans>

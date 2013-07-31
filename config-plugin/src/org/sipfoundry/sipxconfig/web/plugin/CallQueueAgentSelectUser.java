@@ -10,6 +10,7 @@ package org.sipfoundry.sipxconfig.web.plugin;
 
 import org.apache.tapestry.IPage;
 import org.apache.tapestry.IRequestCycle;
+import org.apache.tapestry.annotations.InjectObject;
 import org.apache.tapestry.event.PageBeginRenderListener;
 import org.apache.tapestry.event.PageEvent;
 import org.sipfoundry.sipxconfig.callqueue.CallQueueAgent;
@@ -35,8 +36,10 @@ public abstract class CallQueueAgentSelectUser extends SipxBasePage implements P
 
     public abstract CallQueueAgent getCallQueueAgent();
 
+    @InjectObject("spring:coreContext")
     public abstract CoreContext getCoreContext();
 
+    @InjectObject("spring:callQueueContext")
     public abstract CallQueueContext getCallQueueContext();
 
     public abstract SipxValidationDelegate getValidator();

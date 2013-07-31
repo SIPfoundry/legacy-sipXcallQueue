@@ -43,6 +43,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %{_sysconfdir}/sipxpbx/sipxcallqueue/*
 %{_sysconfdir}/sipxpbx/freeswitch/*
+%{_sysconfdir}/sipxpbx/database/plugin.d/*
+%{_datadir}/sipxecs/cfinputs/plugin.d/*.cf
 %{_datadir}/java/sipXecs/sipXconfig/plugins/sipxcallqueue-config.jar
 
 %post

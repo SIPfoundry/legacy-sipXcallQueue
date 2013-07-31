@@ -13,15 +13,17 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.velocity.VelocityContext;
 import org.sipfoundry.sipxconfig.commserver.Location;
+import org.sipfoundry.sipxconfig.freeswitch.FreeswitchFeature;
 import org.sipfoundry.sipxconfig.freeswitch.FreeswitchSettings;
 import org.sipfoundry.sipxconfig.freeswitch.config.AbstractFreeswitchConfiguration;
 import org.springframework.beans.factory.annotation.Required;
 
 public class CallCenterConfiguration extends AbstractFreeswitchConfiguration {
-
     private CallQueueContext m_callQueueContext;
     private Collection<CallQueue> m_callQueues;
     private Collection<CallQueueAgent> m_callQueueAgents;
@@ -31,6 +33,15 @@ public class CallCenterConfiguration extends AbstractFreeswitchConfiguration {
     public void setCallQueueContext(CallQueueContext callQueueContext) {
         m_callQueueContext = callQueueContext;
     }
+    
+    @Override
+    public List<String> getRequiredModules(FreeswitchFeature feature, Location location) {
+        if (!feature.getConfigManager().getFeatureManager().isFeatureEnabled(CallQueueContext.FEATURE, location)) {
+            return Collections.emptyList();
+        }
+        return Collections.singletonList("mod_callcenter");        
+    }
+    
 
     @Override
     public void write(Writer writer, Location location, FreeswitchSettings settings) throws IOException {

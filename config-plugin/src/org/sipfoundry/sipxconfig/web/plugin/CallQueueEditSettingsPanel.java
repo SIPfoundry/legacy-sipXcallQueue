@@ -10,14 +10,17 @@
 package org.sipfoundry.sipxconfig.web.plugin;
 
 import org.apache.tapestry.BaseComponent;
+import org.apache.tapestry.annotations.Bean;
 import org.apache.tapestry.annotations.ComponentClass;
 import org.apache.tapestry.annotations.InitialValue;
+import org.apache.tapestry.annotations.InjectObject;
 import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.event.PageBeginRenderListener;
 import org.apache.tapestry.event.PageEvent;
 
 import org.sipfoundry.sipxconfig.callqueue.CallQueueContext;
 import org.sipfoundry.sipxconfig.callqueue.CallQueueSettings;
+import org.sipfoundry.sipxconfig.components.SipxValidationDelegate;
 
 @ComponentClass
 public abstract class CallQueueEditSettingsPanel
@@ -32,8 +35,12 @@ public abstract class CallQueueEditSettingsPanel
     public abstract CallQueueSettings getSettings();
 
     public abstract void setSettings(CallQueueSettings settings);
-
+    
+    @InjectObject("spring:callQueueContext")
     public abstract CallQueueContext getCallQueueContext();
+
+    @Bean
+    public abstract SipxValidationDelegate getValidator();
 
     @Override
     public void pageBeginRender(PageEvent event) {

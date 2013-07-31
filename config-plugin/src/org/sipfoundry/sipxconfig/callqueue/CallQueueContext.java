@@ -13,11 +13,13 @@ import java.util.Collection;
 import java.util.List;
 
 import org.sipfoundry.sipxconfig.alias.AliasOwner;
+import org.sipfoundry.sipxconfig.cfgmgt.ConfigProvider;
 import org.sipfoundry.sipxconfig.common.ReplicableProvider;
+import org.sipfoundry.sipxconfig.feature.FeatureProvider;
 import org.sipfoundry.sipxconfig.feature.LocationFeature;
 import org.sipfoundry.sipxconfig.freeswitch.FreeswitchExtensionProvider;
 
-public interface CallQueueContext extends FreeswitchExtensionProvider, AliasOwner, ReplicableProvider {
+public interface CallQueueContext extends FreeswitchExtensionProvider, AliasOwner, ReplicableProvider, FeatureProvider, ConfigProvider {
 
     public static final String CALL_FEATURE_ID = CallQueueContext.CALL_QUEUE;
     public static final LocationFeature FEATURE = new LocationFeature(CALL_FEATURE_ID);

@@ -9,44 +9,44 @@
 
 package org.sipfoundry.sipxconfig.callqueue;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.Query;
 import org.sipfoundry.sipxconfig.alias.AliasManager;
+import org.sipfoundry.sipxconfig.cfgmgt.ConfigManager;
+import org.sipfoundry.sipxconfig.cfgmgt.ConfigRequest;
+import org.sipfoundry.sipxconfig.cfgmgt.ConfigUtils;
+import org.sipfoundry.sipxconfig.common.BeanId;
+import org.sipfoundry.sipxconfig.common.ExtensionInUseException;
+import org.sipfoundry.sipxconfig.common.NameInUseException;
+import org.sipfoundry.sipxconfig.common.Replicable;
+import org.sipfoundry.sipxconfig.common.SameExtensionException;
+import org.sipfoundry.sipxconfig.common.SipxHibernateDaoSupport;
+import org.sipfoundry.sipxconfig.common.UserException;
+import org.sipfoundry.sipxconfig.commserver.Location;
+import org.sipfoundry.sipxconfig.commserver.imdb.ReplicationManager;
 import org.sipfoundry.sipxconfig.feature.Bundle;
 import org.sipfoundry.sipxconfig.feature.FeatureChangeRequest;
 import org.sipfoundry.sipxconfig.feature.FeatureChangeValidator;
 import org.sipfoundry.sipxconfig.feature.FeatureManager;
-import org.sipfoundry.sipxconfig.feature.FeatureProvider;
 import org.sipfoundry.sipxconfig.feature.GlobalFeature;
 import org.sipfoundry.sipxconfig.feature.LocationFeature;
-
-import org.sipfoundry.sipxconfig.common.BeanId;
-import org.sipfoundry.sipxconfig.common.Replicable;
-import org.sipfoundry.sipxconfig.common.SameExtensionException;
-import org.sipfoundry.sipxconfig.common.SipxHibernateDaoSupport;
-import org.sipfoundry.sipxconfig.common.NameInUseException;
-import org.sipfoundry.sipxconfig.common.ExtensionInUseException;
-import org.sipfoundry.sipxconfig.common.UserException;
-import org.sipfoundry.sipxconfig.commserver.Location;
-import org.sipfoundry.sipxconfig.commserver.imdb.ReplicationManager;
-
+import org.sipfoundry.sipxconfig.freeswitch.FreeswitchAction;
+import org.sipfoundry.sipxconfig.freeswitch.FreeswitchCondition;
+import org.sipfoundry.sipxconfig.freeswitch.FreeswitchFeature;
+import org.sipfoundry.sipxconfig.setting.BeanWithSettingsDao;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.dao.support.DataAccessUtils;
 
-import org.sipfoundry.sipxconfig.setting.BeanWithSettingsDao;
-
-import org.sipfoundry.sipxconfig.freeswitch.FreeswitchCondition;
-import org.sipfoundry.sipxconfig.freeswitch.FreeswitchAction;
-import org.sipfoundry.sipxconfig.freeswitch.FreeswitchFeature;
-
-public class CallQueueContextImpl extends SipxHibernateDaoSupport implements CallQueueContext, BeanFactoryAware,
-        FeatureProvider {
+public class CallQueueContextImpl extends SipxHibernateDaoSupport implements CallQueueContext, BeanFactoryAware {
 
     private static final String QUERY_CALL_QUEUE_IDS = "callQueueIds";
     private static final String QUERY_CALL_QUEUE_AGENT_IDS = "callQueueAgentIds";
@@ -413,4 +413,18 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
         }
     }
 
+    @Override
+    public void replicate(ConfigManager manager, ConfigRequest request) throws IOException {
+        if (!request.applies(CallQueueContext.FEATURE)) {
+            return;
+        }
+        
+        Set<Location> locations = request.locations(manager);
+        List<Location> enabledLocations = manager.getFeatureManager().getLocationsForEnabledFeature(FEATURE);
+        for (Location location : locations) {
+            File dir = manager.getLocationDataDirectory(location);
+            boolean enabled = enabledLocations.contains(location);
+            ConfigUtils.enableCfengineClass(dir, "sipxcallqueue.cfdat", enabled, "callqueue");
+        }
+    }
 }
