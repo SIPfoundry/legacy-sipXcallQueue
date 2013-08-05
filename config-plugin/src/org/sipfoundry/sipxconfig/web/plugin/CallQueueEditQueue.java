@@ -84,7 +84,7 @@ public abstract class CallQueueEditQueue extends PageWithCallback implements Pag
     private void saveValid() {
         CallQueueContext context = getCallQueueContext();
         CallQueue callQueue = getCallQueue();
-        context.storeCallQueue(callQueue);
+        context.saveCallQueue(callQueue);
         Integer id = getCallQueue().getId();
         setCallQueueId(id);
     }

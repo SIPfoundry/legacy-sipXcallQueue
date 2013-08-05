@@ -5,23 +5,47 @@
 <model>
 <type id="type_strategy">
     <enum>
-        <option><value>ring-all</value></option>
-        <option><value>longest-idle-agent</value></option>
-        <option><value>round-robin</value></option>
-        <option><value>top-down</value></option>
-        <option><value>agent-with-least-talk-time</value></option>
-        <option><value>agent-with-fewest-calls</value></option>
-        <option><value>sequetially-by-agent-order</value></option>
-        <option><value>random</value></option>
+        <option>
+          <label>Ring all agents simultaneously</label>
+          <value>ring-all</value>
+        </option>
+        <option>
+          <label>Ring agent who has been idle the longest</label>
+          <value>longest-idle-agent</value>
+        </option>
+        <option>
+          <label>Ring agent in position but remember last tried agent</label>
+          <value>round-robin</value>
+        </option>
+        <option>
+          <label>Ring agent in order position starting from 1 for every member</label>
+          <value>top-down</value>
+        </option>
+        <option>
+          <label>Ring agent with least talk time</label>
+          <value>agent-with-least-talk-time</value>
+        </option>
+        <option>
+          <label>Ring agent with fewest calls</label>
+          <value>agent-with-fewest-calls</value>
+        </option>
+        <option>
+          <label>Ring agents sequentially by tier and order</label>
+          <value>sequentially-by-agent-order</value>
+        </option>
+        <option>
+          <label>Ring agents in random order</label>
+          <value>random</value>
+        </option>
     </enum>
 </type>
 <type id="type_upload-music">
-    <file variable="yes" directory="/var/sipxdata/mediaserver/data/moh"/>
+    <file variable="yes"/>
 </type>
     <group name="call-queue">
 	<setting name="strategy"><type refid="type_strategy"/><value>0</value></setting>
 	<setting name="welcome-audio"><type refid="type_upload-music"/></setting>
-	<setting name="announce-position"><type><boolean/></type><value>1</value></setting>
+	<setting name="goodbye-audio"><type refid="type_upload-music"/></setting>
 	<setting name="moh-sound"><type refid="type_upload-music"/></setting>
 	<setting name="record-calls"><type><boolean/></type><value>1</value></setting>
 	<setting name="record-calls-directory"><type><string/></type><value></value></setting>
@@ -30,8 +54,8 @@
 	<setting name="tier-rule-wait-multiply-level"><type><boolean/></type><value>1</value></setting>
 	<setting name="tier-rule-no-agent-no-wait"><type><boolean/></type><value>1</value></setting>
 
-	<setting name="discard-abandoned-after" hidden="yes"><type><integer/></type><value>0</value></setting>
-	<setting name="abandoned-resume-allowed" hidden="yes"><type><boolean/></type><value>1</value></setting>
+	<setting name="discard-abandoned-after"><type><integer/></type><value>0</value></setting>
+	<setting name="abandoned-resume-allowed"><type><boolean/></type><value>1</value></setting>
 
 	<setting name="max-wait-time"><type><integer/></type><value>0</value></setting>
 	<setting name="max-wait-time-with-no-agent"><type><integer/></type><value>0</value></setting>

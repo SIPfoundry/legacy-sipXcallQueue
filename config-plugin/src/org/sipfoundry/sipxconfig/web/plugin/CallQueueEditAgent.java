@@ -9,8 +9,9 @@
 
 package org.sipfoundry.sipxconfig.web.plugin;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.util.Collection;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.tapestry.IPage;
 import org.apache.tapestry.IRequestCycle;
 import org.apache.tapestry.annotations.Bean;
@@ -18,20 +19,26 @@ import org.apache.tapestry.annotations.InjectObject;
 import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.event.PageBeginRenderListener;
 import org.apache.tapestry.event.PageEvent;
+import org.apache.tapestry.valid.ValidatorException;
 import org.sipfoundry.sipxconfig.callqueue.CallQueueAgent;
 import org.sipfoundry.sipxconfig.callqueue.CallQueueContext;
 import org.sipfoundry.sipxconfig.callqueue.CallQueueTier;
+import org.sipfoundry.sipxconfig.common.CoreContext;
 import org.sipfoundry.sipxconfig.components.PageWithCallback;
 import org.sipfoundry.sipxconfig.components.SipxValidationDelegate;
 import org.sipfoundry.sipxconfig.components.TapestryUtils;
+import org.sipfoundry.sipxconfig.site.user.SelectUsers;
+import org.sipfoundry.sipxconfig.site.user.SelectUsersCallback;
 
 public abstract class CallQueueEditAgent extends PageWithCallback implements PageBeginRenderListener {
     public static final String PAGE = "plugin/CallQueueEditAgent";
-    private static final Log LOG = LogFactory.getLog(CallQueueEditAgent.class);
 
     /* Properties */
     @InjectObject("spring:callQueueContext")
     public abstract CallQueueContext getCallQueueContext();
+
+    @InjectObject("spring:coreContext")
+    public abstract CoreContext getCoreContext();
 
     @Persist
     public abstract Integer getCallQueueAgentId();
@@ -56,49 +63,58 @@ public abstract class CallQueueEditAgent extends PageWithCallback implements Pag
 
     public abstract void setIndex(int i);
 
+    public abstract Collection<Integer> getAddedUser();
+
+    public abstract void setAddedUser(Collection<Integer> addedAdmins);
+
     public void pageBeginRender(PageEvent event) {
         if (!TapestryUtils.isValid(this)) {
             return;
         }
 
         CallQueueAgent callqueueagent = getCallQueueAgent();
-        if (null != callqueueagent) {
-            return;
+
+        if (callqueueagent == null) {
+            Integer id = getCallQueueAgentId();
+            if (null != id) {
+                CallQueueContext context = getCallQueueContext();
+                callqueueagent = context.loadCallQueueAgent(id);
+            } else {
+                callqueueagent = getCallQueueContext().newCallQueueAgent();
+            }
         }
 
-        Integer id = getCallQueueAgentId();
-        if (null != id) {
-            CallQueueContext context = getCallQueueContext();
-            callqueueagent = context.loadCallQueueAgent(id);
-        } else {
-            callqueueagent = getCallQueueContext().newCallQueueAgent();
+        if (getAddedUser() != null) {
+            if (getAddedUser().size() == 1) {
+                Integer userId = getAddedUser().iterator().next();
+                callqueueagent.setExtension(getCoreContext().loadUser(userId).getUserName());
+            } else {
+                getValidator().record(new ValidatorException(getMessages().getMessage("err.notUnique")));
+            }
         }
+
         setCallQueueAgent(callqueueagent);
 
         if (getCallback() == null) {
             setReturnPage(CallQueuePage.PAGE);
         }
+
     }
 
     /* Action listeners */
 
     public void commit() {
-        if (isValid()) {
-            saveValid();
+        if (StringUtils.isEmpty(getCallQueueAgent().getExtension())) {
+            getValidator().record(new ValidatorException(getMessages().getMessage("err.noExtension")));
         }
-    }
-
-    private boolean isValid() {
-        return TapestryUtils.isValid(this);
-    }
-
-    private void saveValid() {
-        CallQueueContext context = getCallQueueContext();
-        CallQueueAgent callQueueAgent = getCallQueueAgent();
-        context.storeCallQueueAgent(callQueueAgent);
-        Integer id = getCallQueueAgent().getId();
-        setCallQueueAgent(null);
-        setCallQueueAgentId(id);
+        if (TapestryUtils.isValid(this)) {
+            CallQueueContext context = getCallQueueContext();
+            CallQueueAgent callQueueAgent = getCallQueueAgent();
+            context.saveCallQueueAgent(callQueueAgent);
+            Integer id = getCallQueueAgent().getId();
+            setCallQueueAgent(null);
+            setCallQueueAgentId(id);
+        }
     }
 
     // TODO: commit only on Apply or OK submit button pressed
@@ -115,10 +131,13 @@ public abstract class CallQueueEditAgent extends PageWithCallback implements Pag
         return editAgentPage;
     }
 
-    public IPage setUser(IRequestCycle cycle) {
-        CallQueueAgentSelectUser userSelectPage = (CallQueueAgentSelectUser) cycle
-                .getPage(CallQueueAgentSelectUser.PAGE);
-        userSelectPage.setCallQueueAgentId(getCallQueueAgentId());
-        return userSelectPage;
+    public IPage selectUser(IRequestCycle cycle) {
+        SelectUsers selectUsersPage = (SelectUsers) cycle.getPage(SelectUsers.PAGE);
+        SelectUsersCallback callback = new SelectUsersCallback(this.getPage());
+        callback.setIdsPropertyName("addedUser");
+        selectUsersPage.setCallback(callback);
+        selectUsersPage.setTitle(getMessages().getMessage("title.selectUser"));
+        selectUsersPage.setPrompt(getMessages().getMessage("prompt.selectUser"));
+        return selectUsersPage;
     }
 }

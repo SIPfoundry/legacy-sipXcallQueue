@@ -9,11 +9,20 @@
 #foreach($queue in $queues)
 #if(${queue.enabled})
     <queue name="queue-${queue.extension}">
-#foreach($group in ${queue.settings.values})
-#foreach($setting in ${group.values})
-        <param name="${setting.name}" value="$!{setting.Value}"/>
+        <param name="strategy" value="${queue.strategy}"/>
+        <param name="moh-sound" value="${queue.mohSound}"/>
+#if(${queue.recordEnabled})
+        <param name="record-template" value="${queue.recordTemplate}"/>
 #end
-#end
+        <param name="tier-rules-apply" value="${queue.tierRulesApply}"/>
+        <param name="tier-rule-wait-second" value="${queue.tierRuleWaitSecond}"/>
+        <param name="tier-rule-wait-multiply-level" value="${queue.tierRuleWaitMultiplyLevel}"/>
+        <param name="tier-rule-no-agent-no-wait" value="${queue.tierRuleNoAgentNoWait}"/>
+        <param name="discard-abandoned-after" value="${queue.discardAbandonedAfter}"/>
+        <param name="abandoned-resume-allowed" value="${queue.allowAbandonedResume}"/>
+        <param name="max-wait-time" value="${queue.maxWaitTime}"/>
+        <param name="max-wait-time-with-no-agent" value="${queue.maxWaitTimeWithNoAgent}"/>
+        <param name="max-wait-time-with-no-agent-time-reached" value="${queue.maxWaitTimeWithNoAgentTimeReached}"/>
     </queue>
 #end
 #end

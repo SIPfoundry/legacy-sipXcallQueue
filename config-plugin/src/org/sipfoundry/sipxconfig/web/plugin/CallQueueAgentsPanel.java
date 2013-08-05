@@ -86,7 +86,7 @@ public abstract class CallQueueAgentsPanel extends BaseComponent {
     public void delete() {
         Collection<Integer> selectedRows = getRowsToDelete();
         if (null != selectedRows) {
-            getCallQueueContext().removeCallQueueAgents(selectedRows);
+            getCallQueueContext().deleteCallQueueAgents(selectedRows);
         }
     }
 }

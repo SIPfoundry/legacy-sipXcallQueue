@@ -11,8 +11,8 @@
 	    <span jwcid="common@common/ItemCommon"
 		useFieldset="false"
 		useEnabled="false"
-		useExtensionSelect="ognl:CallQueueAgentId!=null"
-		selectUserListener="listener:setUser"
+		useExtensionSelect="true"
+		selectUserListener="listener:selectUser"
 		item="ognl:CallQueueAgent"
 	    />
 	</tbody>
@@ -46,8 +46,6 @@
 	</tbody>
 	</table>
 	</span>
-	</fieldset>
-	<!-- Tiers fieldset end -->
 	<!-- Settings from model file fieldset begin -->
 	<fieldset jwcid="@setting/SettingsFieldset" settings="ognl:CallQueueAgent.settings" renderGroupTitle="false"/>
 	<ul jwcid="@common/FormActions" listener="listener:commit" callback="ognl:callback"/>

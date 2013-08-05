@@ -33,15 +33,14 @@ public class CallCenterConfiguration extends AbstractFreeswitchConfiguration {
     public void setCallQueueContext(CallQueueContext callQueueContext) {
         m_callQueueContext = callQueueContext;
     }
-    
+
     @Override
     public List<String> getRequiredModules(FreeswitchFeature feature, Location location) {
         if (!feature.getConfigManager().getFeatureManager().isFeatureEnabled(CallQueueContext.FEATURE, location)) {
             return Collections.emptyList();
         }
-        return Collections.singletonList("mod_callcenter");        
+        return Collections.singletonList("mod_callcenter");
     }
-    
 
     @Override
     public void write(Writer writer, Location location, FreeswitchSettings settings) throws IOException {

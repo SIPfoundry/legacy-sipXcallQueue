@@ -29,9 +29,10 @@
   </bean>
 
   <bean id="callQueueContextImpl" class="org.sipfoundry.sipxconfig.callqueue.CallQueueContextImpl" parent="abstractDaoImpl">
+    <property name="replicationManager" ref="replicationManagerImpl" />
     <property name="aliasManager" ref="aliasManager"/>
     <property name="featureManager" ref="featureManager" />
-    <property name="replicationManager" ref="replicationManagerImpl" />
+    <property name="callQueueDeployer" ref="callQueueDeployer"/>
     <property name="settingsDao">
       <bean parent="beanWithSettingsDao">
         <property name="target">
@@ -43,11 +44,19 @@
     </property>
   </bean>
 
+  <bean id="callQueueDeployer" class="org.sipfoundry.sipxconfig.callqueue.CallQueueDeployer">
+    <property name="freeswitchApiProvider" ref="freeswitchApiProvider" />
+    <property name="addressManager" ref="addressManager" />
+    <property name="featureManager" ref="featureManager" />
+  </bean>
+
   <bean id="callQueueExtension" class="org.sipfoundry.sipxconfig.callqueue.CallQueueExtension" scope="prototype"/>
 
   <bean id="callQueue" class="org.sipfoundry.sipxconfig.callqueue.CallQueue" scope="prototype">
     <property name="modelFilesContext" ref="modelFilesContext"/>
     <property name="addressManager" ref="addressManager"/>
+    <property name="mohDirectory" value="${sysdir.vxml.moh}" />
+    <property name="promptsDirectory" value="${sysdir.vxml.prompts}" />
   </bean>
 
   <bean id="callQueueCommand" class="org.sipfoundry.sipxconfig.callqueue.CallQueueCommand" scope="prototype">

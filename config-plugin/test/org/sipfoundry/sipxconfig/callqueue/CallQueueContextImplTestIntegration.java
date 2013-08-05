@@ -56,7 +56,7 @@ public class CallQueueContextImplTestIntegration extends IntegrationTestCase {
         CallQueue callQueue = m_callQueueContext.newCallQueue();
         callQueue.setName("Queue 10");
         callQueue.setExtension("8110");
-        m_callQueueContext.storeCallQueue(callQueue);
+        m_callQueueContext.saveCallQueue(callQueue);
         commit();
         // table should have additional row now - 8 = 4 static CallQueues + 1 dynamic CallQueue + 3 CallQueueCommands
         assertEquals(8, countRowsInTable("freeswitch_extension"));
@@ -75,7 +75,7 @@ public class CallQueueContextImplTestIntegration extends IntegrationTestCase {
 
     public void testRemoveCallQueues() throws Exception {
         Collection<Integer> callQueueIds = new HashSet<Integer>(Arrays.asList(new Integer(300004)));
-        m_callQueueContext.removeCallQueues(callQueueIds);
+        m_callQueueContext.deleteCallQueues(callQueueIds);
         commit();
         // table should have less rows now - 6
         assertEquals(6, countRowsInTable("freeswitch_extension"));
@@ -100,7 +100,7 @@ public class CallQueueContextImplTestIntegration extends IntegrationTestCase {
         CallQueueAgent callQueueAgent = m_callQueueContext.newCallQueueAgent();
         callQueueAgent.setName("Agent 10");
         callQueueAgent.setExtension("4010");
-        m_callQueueContext.storeCallQueueAgent(callQueueAgent);
+        m_callQueueContext.saveCallQueueAgent(callQueueAgent);
         commit();
         // table should have additional row now - 3
         assertEquals(4, countRowsInTable("call_queue_agent"));
@@ -119,7 +119,7 @@ public class CallQueueContextImplTestIntegration extends IntegrationTestCase {
 
     public void testDeleteCallQueueAgents() throws Exception {
         Collection<Integer> callQueueAgentIds = new HashSet<Integer>(Arrays.asList(new Integer(100001), new Integer(100002), new Integer(100003)));
-        m_callQueueContext.removeCallQueueAgents(callQueueAgentIds);
+        m_callQueueContext.deleteCallQueueAgents(callQueueAgentIds);
         commit();
         // table should have no rows now - 0
         assertEquals(0, countRowsInTable("call_queue_agent"));

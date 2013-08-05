@@ -36,6 +36,9 @@ public class CallQueueCommand extends CallQueueExtension {
             condition.addAction(createAction("set",
                     String.format("res=${callcenter_config(agent set status agent-${caller_id_number} '%s')}",
                             status)));
+            condition.addAction(createAction("answer", ""));
+            condition.addAction(createAction("sleep", "500"));
+            condition.addAction(createAction("hangup", "NORMAL CLEARING"));
             addCondition(condition);
         }
         for (FreeswitchCondition condition : getConditions()) {

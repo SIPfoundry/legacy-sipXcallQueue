@@ -82,7 +82,7 @@ public abstract class CallQueueQueuesPanel extends BaseComponent {
                     throw new UserException(getMessages().getMessage("&error.callQueueBusy"));
                 }
             }
-            getCallQueueContext().removeCallQueues(selectedRows);
+            getCallQueueContext().deleteCallQueues(selectedRows);
         }
     }
 }

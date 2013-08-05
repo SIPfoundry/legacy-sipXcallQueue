@@ -35,6 +35,7 @@ import org.sipfoundry.sipxconfig.feature.Bundle;
 import org.sipfoundry.sipxconfig.feature.FeatureChangeRequest;
 import org.sipfoundry.sipxconfig.feature.FeatureChangeValidator;
 import org.sipfoundry.sipxconfig.feature.FeatureManager;
+import org.sipfoundry.sipxconfig.feature.FeatureProvider;
 import org.sipfoundry.sipxconfig.feature.GlobalFeature;
 import org.sipfoundry.sipxconfig.feature.LocationFeature;
 import org.sipfoundry.sipxconfig.freeswitch.FreeswitchAction;
@@ -46,10 +47,9 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.dao.support.DataAccessUtils;
 
-public class CallQueueContextImpl extends SipxHibernateDaoSupport implements CallQueueContext, BeanFactoryAware {
+public class CallQueueContextImpl extends SipxHibernateDaoSupport implements CallQueueContext, BeanFactoryAware,
+        FeatureProvider {
 
-    private static final String QUERY_CALL_QUEUE_IDS = "callQueueIds";
-    private static final String QUERY_CALL_QUEUE_AGENT_IDS = "callQueueAgentIds";
     private static final String QUERY_CALL_QUEUE_EXTENSIONS_WITH_NAMES = "callQueueExtensionWithName";
     private static final String QUERY_PARAM_VALUE = "value";
     private static final String QUERY_PARAM_AGENT_ID = "callqueueagentid";
@@ -65,8 +65,12 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
     private BeanFactory m_beanFactory;
     private AliasManager m_aliasManager;
     private FeatureManager m_featureManager;
-    private ReplicationManager m_replicationManager;
     private BeanWithSettingsDao<CallQueueSettings> m_settingsDao;
+    private ReplicationManager m_replicationManager;
+    private CallQueueDeployer m_fsDeployer;
+
+    // TODO load only queues and agents that were changed
+    private boolean m_reloadQueues;
 
     public void setBeanFactory(BeanFactory beanFactory) {
         m_beanFactory = beanFactory;
@@ -83,8 +87,14 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
         m_featureManager = featureManager;
     }
 
+    @Required
     public void setReplicationManager(ReplicationManager replicationManager) {
         m_replicationManager = replicationManager;
+    }
+
+    @Required
+    public void setCallQueueDeployer(CallQueueDeployer deployer) {
+        m_fsDeployer = deployer;
     }
 
     /* Settings API */
@@ -104,11 +114,13 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
 
     @Override
     public List<Replicable> getReplicables() {
-        List<Replicable> replicables = new ArrayList<Replicable>();
-        replicables.addAll(getCallQueues());
-        replicables.addAll(getCallQueueAgents());
-        replicables.addAll(getCallQueueCommands());
-        return replicables;
+        if (m_featureManager.isFeatureEnabled(FEATURE)) {
+            List<Replicable> replicables = new ArrayList<Replicable>();
+            replicables.addAll(getCallQueues());
+            replicables.addAll(getCallQueueCommands());
+            return replicables;
+        }
+        return Collections.EMPTY_LIST;
     }
 
     /* Alias support */
@@ -154,7 +166,6 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
 
     public void deleteExtension(CallQueueExtension ext) {
         getHibernateTemplate().delete(ext);
-        getHibernateTemplate().flush();
     }
 
     public void saveExtension(CallQueueExtension extension) {
@@ -228,9 +239,9 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
         return callqueue;
     }
 
-    public void storeCallQueue(CallQueue callQueue) { // Tested
-        getDaoEventPublisher().publishSave(callQueue);
+    public void saveCallQueue(CallQueue callQueue) { // Tested
         saveExtension(callQueue);
+        m_reloadQueues = true;
     }
 
     public CallQueue loadCallQueue(Integer id) { // Tested
@@ -247,16 +258,21 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
                 newCallQueue.setDescription(srcCallQueue.getDescription() + COPIED);
             }
             srcCallQueue.copySettingsTo(newCallQueue);
-            getDaoEventPublisher().publishSave(newCallQueue);
             getHibernateTemplate().saveOrUpdate(newCallQueue);
         }
+        m_reloadQueues = true;
     }
 
-    public void removeCallQueues(Collection<Integer> ids) { // Tested
+    public void deleteCallQueues(Collection<Integer> ids) { // Tested
         if (ids.isEmpty()) {
             return;
         }
-        removeAll(CallQueue.class, ids);
+        for (Integer queueId : ids) {
+            CallQueue queue = loadCallQueue(queueId);
+            String extension = queue.getExtension();
+            getHibernateTemplate().delete(queue);
+            m_fsDeployer.deleteQueue(extension);
+        }
     }
 
     public Collection<CallQueue> getCallQueues() { // Test
@@ -265,12 +281,12 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
 
     /* CallQueueCommand API */
 
-    private void createCallQeuueCommand(String command, String status) { // Should not be Tested
+    private void createCallQueueCommand(String command, String status) { // Should not be Tested
         CallQueueCommand callQueueCommand = newCallQueueCommand();
         callQueueCommand.setName(command);
         callQueueCommand.setAlias(getSettings().getSettingValue("call-queue-agent-code/" + command));
         callQueueCommand.setExtension(command, status);
-        storeCallQueueCommand(callQueueCommand);
+        saveCallQueueCommand(callQueueCommand);
     }
 
     private void refreshCallQueueCommands(CallQueueSettings settings) { // Should not be Tested
@@ -278,7 +294,7 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
         for (CallQueueCommand callQueueCommand : callqueuecommands) {
             callQueueCommand.setAlias(settings.getSettingValue(String.format("call-queue-agent-code/%s",
                     callQueueCommand.getName())));
-            storeCallQueueCommand(callQueueCommand);
+            saveCallQueueCommand(callQueueCommand);
         }
     }
 
@@ -287,9 +303,8 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
         return callqueuecommand;
     }
 
-    private void storeCallQueueCommand(CallQueueCommand callQueueCommand) { // Should not be
-                                                                            // Tested
-        getDaoEventPublisher().publishSave(callQueueCommand);
+    @Override
+    public void saveCallQueueCommand(CallQueueCommand callQueueCommand) {
         saveExtension(callQueueCommand);
     }
 
@@ -308,16 +323,16 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
         return callqueueagent;
     }
 
-    public void storeCallQueueAgent(CallQueueAgent callQueueAgent) { // Tested
+    public void saveCallQueueAgent(CallQueueAgent callQueueAgent) { // Tested
         // Check for duplicate names and extensions before saving the call queue
         String name = callQueueAgent.getName();
         final String callQueueAgentTypeName = "&label.callQueueAgent";
         if (!m_aliasManager.canObjectUseAlias(callQueueAgent, name)) {
             throw new NameInUseException(callQueueAgentTypeName, name);
         }
-
-        getDaoEventPublisher().publishSave(callQueueAgent);
+        boolean isNew = callQueueAgent.isNew();
         getHibernateTemplate().saveOrUpdate(callQueueAgent);
+        m_fsDeployer.deployAgent(callQueueAgent, isNew);
     }
 
     public CallQueueAgent loadCallQueueAgent(Integer id) { // Tested
@@ -335,16 +350,23 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
                 newCallQueueAgent.setDescription(srcCallQueueAgent.getDescription() + COPIED);
             }
             srcCallQueueAgent.copySettingsTo(newCallQueueAgent);
-            getDaoEventPublisher().publishSave(newCallQueueAgent);
             getHibernateTemplate().saveOrUpdate(newCallQueueAgent);
+            m_fsDeployer.deployAgent(newCallQueueAgent, true);
         }
     }
 
-    public void removeCallQueueAgents(Collection<Integer> ids) { // Tested
+    public void deleteCallQueueAgents(Collection<Integer> ids) { // Tested
         if (ids.isEmpty()) {
             return;
         }
-        removeAll(CallQueueAgent.class, ids);
+
+        for (Integer agentId : ids) {
+            CallQueueAgent agent = loadCallQueueAgent(agentId);
+            String extension = agent.getExtension();
+            getHibernateTemplate().delete(agent);
+            m_fsDeployer.deleteAgent(extension);
+        }
+
     }
 
     public Collection<CallQueueAgent> getCallQueueAgents() { // Tested
@@ -383,17 +405,27 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
     public void featureChangePrecommit(FeatureManager manager, FeatureChangeValidator validator) {
         validator.requiredOnSameHost(FEATURE, FreeswitchFeature.FEATURE);
         validator.singleLocationOnly(FEATURE);
-        Collection<CallQueueCommand> callqueuecommands = getCallQueueCommands();
-        // TODO: make it right...
-        if (callqueuecommands.size() == 0) {
-            createCallQeuueCommand("agent-login", "Available");
-            createCallQeuueCommand("agent-on-break", "On Break");
-            createCallQeuueCommand("agent-logout", "Logged Out");
-        }
     }
 
     @Override
     public void featureChangePostcommit(FeatureManager manager, FeatureChangeRequest request) {
+        if (request.getAllNewlyDisabledFeatures().contains(FEATURE)) {
+            for (CallQueueCommand command : getCallQueueCommands()) {
+                m_replicationManager.removeEntity(command);
+            }
+            for (CallQueue queue : getCallQueues()) {
+                m_replicationManager.removeEntity(queue);
+            }
+        }
+
+        if (request.getAllNewlyEnabledFeatures().contains(FEATURE)) {
+            Collection<CallQueueCommand> commands = getCallQueueCommands();
+            if (commands.isEmpty()) {
+                createCallQueueCommand("agent-login", "Available");
+                createCallQueueCommand("agent-on-break", "On Break");
+                createCallQueueCommand("agent-logout", "Logged Out");
+            }
+        }
     }
 
     @Override
@@ -418,13 +450,26 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
         if (!request.applies(CallQueueContext.FEATURE)) {
             return;
         }
-        
+
         Set<Location> locations = request.locations(manager);
         List<Location> enabledLocations = manager.getFeatureManager().getLocationsForEnabledFeature(FEATURE);
         for (Location location : locations) {
             File dir = manager.getLocationDataDirectory(location);
             boolean enabled = enabledLocations.contains(location);
             ConfigUtils.enableCfengineClass(dir, "sipxcallqueue.cfdat", enabled, "callqueue");
+        }
+    }
+
+    @Override
+    public void postReplicate(ConfigManager manager, ConfigRequest request) throws IOException {
+        // reload queues only after reloadxml finished
+        if (request.applies(FEATURE) || request.applies(FreeswitchFeature.FEATURE)) {
+            if (m_reloadQueues) {
+                m_reloadQueues = false;
+                for (CallQueue queue : getCallQueues()) {
+                    m_fsDeployer.reloadQueue(queue.getExtension());
+                }
+            }
         }
     }
 }

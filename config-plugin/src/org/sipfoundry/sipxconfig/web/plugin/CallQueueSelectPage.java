@@ -15,6 +15,7 @@ import org.apache.tapestry.IPage;
 import org.apache.tapestry.IRequestCycle;
 import org.apache.tapestry.annotations.InitialValue;
 import org.apache.tapestry.annotations.InjectObject;
+import org.apache.tapestry.annotations.Persist;
 import org.apache.tapestry.event.PageBeginRenderListener;
 import org.apache.tapestry.event.PageEvent;
 import org.sipfoundry.sipxconfig.callqueue.CallQueue;
@@ -26,10 +27,11 @@ import org.sipfoundry.sipxconfig.components.SipxBasePage;
 
 public abstract class CallQueueSelectPage extends SipxBasePage implements PageBeginRenderListener {
 
-    public static final String PAGE = "callqueue/CallQueueSelectPage";
+    public static final String PAGE = "plugin/CallQueueSelectPage";
 
     /* Properties */
 
+    @Persist(value = "session")
     public abstract void setCallQueueAgentId(Integer callqueueagentid);
 
     public abstract Integer getCallQueueAgentId();

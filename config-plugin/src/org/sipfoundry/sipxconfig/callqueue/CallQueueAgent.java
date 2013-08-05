@@ -9,42 +9,26 @@
 
 package org.sipfoundry.sipxconfig.callqueue;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.sipfoundry.sipxconfig.common.Replicable;
-import org.sipfoundry.sipxconfig.common.SipUri;
-import org.sipfoundry.sipxconfig.commserver.imdb.AliasMapping;
-import org.sipfoundry.sipxconfig.commserver.imdb.DataSet;
 import org.sipfoundry.sipxconfig.cfgmgt.DeployConfigOnEdit;
+import org.sipfoundry.sipxconfig.domain.DomainManager;
 import org.sipfoundry.sipxconfig.feature.Feature;
 import org.sipfoundry.sipxconfig.freeswitch.FreeswitchFeature;
 import org.sipfoundry.sipxconfig.setting.BeanWithSettings;
 import org.sipfoundry.sipxconfig.setting.Setting;
 import org.sipfoundry.sipxconfig.setting.SettingEntry;
-import org.sipfoundry.sipxconfig.domain.DomainManager;
-
 import org.springframework.beans.factory.annotation.Required;
 
-public class CallQueueAgent extends BeanWithSettings implements Replicable, DeployConfigOnEdit {
-
-    private static final String ALIAS_RELATION = "callqueueagent";
-    private static final String PREFIX_CALLQUEUE_AGENT = "~~cqa~";
+public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEdit {
 
     private String m_name;
     private String m_extension;
     private String m_description;
-
-    private DomainManager m_domainManager;
     private CallQueueContext m_callQueueContext;
-
     private CallQueueTiers m_tiers = new CallQueueTiers();
+    private DomainManager m_domainManager;
 
     /* Enabled */
     public boolean isEnabled() {
@@ -80,10 +64,6 @@ public class CallQueueAgent extends BeanWithSettings implements Replicable, Depl
         m_domainManager = domainManager;
     }
 
-    public DomainManager getDomainManager() {
-        return m_domainManager;
-    }
-
     @Required
     public void setCallQueueContext(CallQueueContext callqueuecontext) {
         m_callQueueContext = callqueuecontext;
@@ -102,7 +82,7 @@ public class CallQueueAgent extends BeanWithSettings implements Replicable, Depl
     }
 
     public String getContactUri() {
-        return String.format("sofia/%s/~~cqa~%s@%s",
+        return String.format("sofia/%s/%s@%s",
                 m_domainManager.getDomainName(), getExtension(), m_domainManager.getDomainName());
     }
 
@@ -120,39 +100,6 @@ public class CallQueueAgent extends BeanWithSettings implements Replicable, Depl
                 }
             }
         }
-    }
-
-    @Override
-    public Collection<AliasMapping> getAliasMappings(String domainName) {
-        List<AliasMapping> mappings = new ArrayList<AliasMapping>();
-        if (getExtension() != null) {
-            AliasMapping aliasMapping = new AliasMapping(PREFIX_CALLQUEUE_AGENT + getExtension(),
-                    SipUri.format(getExtension(), domainName, false), ALIAS_RELATION);
-            mappings.add(aliasMapping);
-        }
-        return mappings;
-    }
-
-    @Override
-    public Set<DataSet> getDataSets() {
-        Set<DataSet> ds = new HashSet<DataSet>();
-        ds.add(DataSet.ALIAS);
-        return ds;
-    }
-
-    @Override
-    public String getIdentity(String domain) {
-        return SipUri.stripSipPrefix(SipUri.format(null, PREFIX_CALLQUEUE_AGENT + getExtension(), domain));
-    }
-
-    @Override
-    public boolean isValidUser() {
-        return true;
-    }
-
-    @Override
-    public Map<String, Object> getMongoProperties(String domain) {
-        return Collections.emptyMap();
     }
 
     @Override

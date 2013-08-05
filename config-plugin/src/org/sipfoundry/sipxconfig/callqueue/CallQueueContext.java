@@ -5,7 +5,7 @@
  * Contributors retain copyright to elements licensed under a Contributor Agreement.
  * Licensed to the User under the LGPL license.
  *
-*/
+ */
 
 package org.sipfoundry.sipxconfig.callqueue;
 
@@ -14,12 +14,13 @@ import java.util.List;
 
 import org.sipfoundry.sipxconfig.alias.AliasOwner;
 import org.sipfoundry.sipxconfig.cfgmgt.ConfigProvider;
+import org.sipfoundry.sipxconfig.cfgmgt.PostConfigListener;
 import org.sipfoundry.sipxconfig.common.ReplicableProvider;
-import org.sipfoundry.sipxconfig.feature.FeatureProvider;
 import org.sipfoundry.sipxconfig.feature.LocationFeature;
 import org.sipfoundry.sipxconfig.freeswitch.FreeswitchExtensionProvider;
 
-public interface CallQueueContext extends FreeswitchExtensionProvider, AliasOwner, ReplicableProvider, FeatureProvider, ConfigProvider {
+public interface CallQueueContext extends FreeswitchExtensionProvider, AliasOwner, ReplicableProvider,
+        ConfigProvider, PostConfigListener {
 
     public static final String CALL_FEATURE_ID = CallQueueContext.CALL_QUEUE;
     public static final LocationFeature FEATURE = new LocationFeature(CALL_FEATURE_ID);
@@ -34,6 +35,8 @@ public interface CallQueueContext extends FreeswitchExtensionProvider, AliasOwne
     void saveExtension(CallQueueExtension extension);
 
     void deleteExtension(CallQueueExtension extension);
+
+    void saveCallQueueCommand(CallQueueCommand callQueueCommand);
 
     CallQueueExtension getExtensionById(Integer extensionId);
 
@@ -50,26 +53,26 @@ public interface CallQueueContext extends FreeswitchExtensionProvider, AliasOwne
     /* CallQueue API */
     CallQueue loadCallQueue(Integer id);
 
-    void storeCallQueue(CallQueue callQueue);
+    void saveCallQueue(CallQueue callQueue);
 
     CallQueue newCallQueue();
 
     void duplicateCallQueues(Collection<Integer> ids);
 
-    void removeCallQueues(Collection<Integer> ids);
+    void deleteCallQueues(Collection<Integer> ids);
 
     Collection<CallQueue> getCallQueues();
 
     /* CallQueueAgent API */
     CallQueueAgent loadCallQueueAgent(Integer id);
 
-    void storeCallQueueAgent(CallQueueAgent callQueueAgent);
+    void saveCallQueueAgent(CallQueueAgent callQueueAgent);
 
     CallQueueAgent newCallQueueAgent();
 
     void duplicateCallQueueAgents(Collection<Integer> ids);
 
-    void removeCallQueueAgents(Collection<Integer> ids);
+    void deleteCallQueueAgents(Collection<Integer> ids);
 
     Collection<CallQueueAgent> getCallQueueAgents();
 

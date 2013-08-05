@@ -5,48 +5,61 @@
  * Contributors retain copyright to elements licensed under a Contributor Agreement.
  * Licensed to the User under the LGPL license.
  *
-*/
+ */
 
 package org.sipfoundry.sipxconfig.callqueue;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
+import org.sipfoundry.sipxconfig.freeswitch.FreeswitchAction;
 import org.sipfoundry.sipxconfig.freeswitch.FreeswitchCondition;
+import org.sipfoundry.sipxconfig.setting.AbstractSettingVisitor;
 import org.sipfoundry.sipxconfig.setting.Setting;
+import org.sipfoundry.sipxconfig.setting.type.FileSetting;
+import org.sipfoundry.sipxconfig.setting.type.SettingType;
 
 public class CallQueue extends CallQueueExtension {
+    private static final String RECORD_DIR = "call-queue/record-calls-directory";
+    private static final String PLAYBACK = "playback";
+    private static final String DELIM = "/";
+    private String m_promptsDirectory;
+    private String m_mohDirectory;
 
-    private String m_audioDirectory;
-
-    public String getAudioDirectory() {
-        return m_audioDirectory;
+    public void setPromptsDirectory(String promptsDirectory) {
+        m_promptsDirectory = promptsDirectory;
     }
 
-    public void setAudioDirectory(String audioDirectory) {
-        m_audioDirectory = audioDirectory;
+    public void setMohDirectory(String mohDirectory) {
+        m_mohDirectory = mohDirectory;
     }
 
     /* Set extension handling for CallQueue */
     public void setExtension(String extension) {
+        FreeswitchCondition condition;
         if (getConditions() == null) {
-            FreeswitchCondition condition = createCondition();
-            condition.addAction(createAction("callcenter", String.format("queue-%s", extension)));
-            addCondition(condition);
+            condition = createCondition();
+        } else {
+            condition = getNumberCondition();
         }
-        for (FreeswitchCondition condition : getConditions()) {
-            if (condition.getField().equals(DESTINATION_NUMBER)) {
-                condition.setExpression(extension);
-            }
+        Set<FreeswitchAction> actions = new LinkedHashSet<FreeswitchAction>();
+        actions.add(createAction("set", "hangup_after_bridge=true"));
+        String welcomeAudio = (String) getSettingTypedValue("call-queue/welcome-audio");
+        if (null != welcomeAudio) {
+            actions.add(createAction(PLAYBACK, m_promptsDirectory + DELIM + welcomeAudio));
         }
-    }
-
-    @Override
-    public Map<String, Object> getMongoProperties(String domain) {
-        Map<String, Object> props = new HashMap<String, Object>();
-        // TODO: Put some properties for mongo
-        props.putAll(super.getMongoProperties(domain));
-        return props;
+        actions.add(createAction("callcenter", String.format("queue-%s", extension)));
+        String goodbyeAudio = (String) getSettingTypedValue("call-queue/goodbye-audio");
+        if (null != goodbyeAudio) {
+            actions.add(createAction(PLAYBACK, m_promptsDirectory + DELIM + goodbyeAudio));
+        }
+        actions.add(createAction("hangup", null));
+        condition.setExpression(extension);
+        condition.setActions(actions);
+        addCondition(condition);
     }
 
     @Override
@@ -60,11 +73,6 @@ public class CallQueue extends CallQueueExtension {
     }
 
     @Override
-    public void initialize() {
-        addDefaultBeanSettingHandler(this);
-    }
-
-    @Override
     protected Setting loadSettings() {
         return getModelFilesContext().loadModelFile("sipxcallqueue/CallQueue.xml");
     }
@@ -72,5 +80,93 @@ public class CallQueue extends CallQueueExtension {
     public void copySettingsTo(CallQueue dst) {
         // Copy bean settings
         dst.setSettings(getSettings());
+    }
+
+    public String getStrategy() {
+        return (String) getSettingTypedValue("call-queue/strategy");
+    }
+
+    public String getMohSound() {
+        String mohSound = (String) getSettingTypedValue("call-queue/moh-sound");
+        if (StringUtils.isNotEmpty(mohSound)) {
+            return m_mohDirectory + DELIM + (String) getSettingTypedValue("call-queue/moh-sound");
+        }
+        return StringUtils.EMPTY;
+    }
+
+    public Boolean getRecordEnabled() {
+        return (Boolean) getSettingTypedValue("call-queue/record-calls");
+    }
+
+    public String getRecordTemplate() {
+        if (getRecordEnabled() && StringUtils.isNotEmpty((String) getSettingTypedValue(RECORD_DIR))) {
+            return (String) getSettingTypedValue(RECORD_DIR) + DELIM
+                    + "${strftime(%Y-%m-%d-%H-%M-%S)}.to-${destination_number}-from-${caller_id_number}.${uuid}.wav";
+        }
+        return StringUtils.EMPTY;
+    }
+
+    public Boolean getTierRulesApply() {
+        return (Boolean) getSettingTypedValue("call-queue/tier-rules-apply");
+    }
+
+    public Integer getTierRuleWaitSecond() {
+        return (Integer) getSettingTypedValue("call-queue/tier-rule-wait-second");
+    }
+
+    public Boolean getTierRuleWaitMultiplyLevel() {
+        return (Boolean) getSettingTypedValue("call-queue/tier-rule-wait-multiply-level");
+    }
+
+    public Boolean getTierRuleNoAgentNoWait() {
+        return (Boolean) getSettingTypedValue("call-queue/tier-rule-no-agent-no-wait");
+    }
+
+    public Integer getDiscardAbandonedAfter() {
+        return (Integer) getSettingTypedValue("call-queue/discard-abandoned-after");
+    }
+
+    public Boolean getAllowAbandonedResume() {
+        return (Boolean) getSettingTypedValue("call-queue/abandoned-resume-allowed");
+    }
+
+    public Integer getMaxWaitTime() {
+        return (Integer) getSettingTypedValue("call-queue/max-wait-time");
+    }
+
+    public Integer getMaxWaitTimeWithNoAgent() {
+        return (Integer) getSettingTypedValue("call-queue/max-wait-time-with-no-agent");
+    }
+
+    public Integer getMaxWaitTimeWithNoAgentTimeReached() {
+        return (Integer) getSettingTypedValue("call-queue/max-wait-time-with-no-agent-time-reached");
+    }
+
+    @Override
+    public void setSettings(Setting settings) {
+        settings.acceptVisitor(new AudioDirectorySetter(m_promptsDirectory, "welcome-audio", "goodbye-audio"));
+        settings.acceptVisitor(new AudioDirectorySetter(m_mohDirectory, "moh-sound"));
+        super.setSettings(settings);
+    }
+
+    private class AudioDirectorySetter extends AbstractSettingVisitor {
+        private final String m_audioDirectory;
+        private final List<String> m_settingNames;
+
+        public AudioDirectorySetter(String directory, String... settingNames) {
+            m_audioDirectory = directory;
+            m_settingNames = Arrays.asList(settingNames);
+        }
+
+        @Override
+        public void visitSetting(Setting setting) {
+            SettingType type = setting.getType();
+            if (type instanceof FileSetting) {
+                if (m_settingNames.contains(setting.getName())) {
+                    FileSetting fileType = (FileSetting) type;
+                    fileType.setDirectory(m_audioDirectory);
+                }
+            }
+        }
     }
 }
