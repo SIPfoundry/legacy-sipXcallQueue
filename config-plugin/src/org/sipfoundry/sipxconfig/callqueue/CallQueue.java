@@ -89,7 +89,7 @@ public class CallQueue extends CallQueueExtension {
     public String getMohSound() {
         String mohSound = (String) getSettingTypedValue("call-queue/moh-sound");
         if (StringUtils.isNotEmpty(mohSound)) {
-            return m_mohDirectory + DELIM + (String) getSettingTypedValue("call-queue/moh-sound");
+            return m_mohDirectory + DELIM + mohSound;
         }
         return StringUtils.EMPTY;
     }
