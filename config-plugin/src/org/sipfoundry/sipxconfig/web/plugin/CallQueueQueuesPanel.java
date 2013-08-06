@@ -78,8 +78,7 @@ public abstract class CallQueueQueuesPanel extends BaseComponent {
         if (null != selectedRows) {
             for (Integer callqueueid : selectedRows) {
                 if (getCallQueueContext().getCallQueueAgentsForQueue(callqueueid).size() > 0) {
-                    //TODO: display exception on page
-                    throw new UserException(getMessages().getMessage("&error.callQueueBusy"));
+                    throw new UserException("&error.callQueueBusy");
                 }
             }
             getCallQueueContext().deleteCallQueues(selectedRows);

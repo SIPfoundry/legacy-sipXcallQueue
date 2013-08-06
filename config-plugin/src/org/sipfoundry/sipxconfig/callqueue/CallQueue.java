@@ -63,11 +63,6 @@ public class CallQueue extends CallQueueExtension {
     }
 
     @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
-    @Override
     public boolean isValidUser() {
         return true;
     }

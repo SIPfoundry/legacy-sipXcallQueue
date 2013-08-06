@@ -31,6 +31,8 @@ public class CallQueueDeployer {
     private static final String DELETE_AGENT = "agent del agent-%s";
     private static final String RELOAD_QUEUE = "queue reload queue-%s";
     private static final String UNLOAD_QUEUE = "queue unload queue-%s";
+    private static final String DELETE_TIER = "tier del queue-%s agent-%s";
+    private static final String ADD_TIER = "tier add queue-%s agent-%s %d %d";
     private ApiProvider<FreeswitchApi> m_freeswitchApiProvider;
     private FeatureManager m_featureManager;
     private AddressManager m_addressManager;
@@ -66,6 +68,20 @@ public class CallQueueDeployer {
 
     public void deleteQueue(String extension) {
         getFsApi().callcenter_config(String.format(UNLOAD_QUEUE, extension));
+    }
+
+    public void deployTiers(CallQueue queue, CallQueueAgent callQueueAgent) {
+        FreeswitchApi api = getFsApi();
+        // delete tier first
+        api.callcenter_config(String.format(DELETE_TIER, queue.getExtension(), callQueueAgent.getExtension()));
+
+        // redeploy tiers
+        for (CallQueueTier tier : callQueueAgent.getTiers().getTiers()) {
+            if (tier.getCallQueueId().equals(queue.getId())) {
+                api.callcenter_config(String.format(ADD_TIER, queue.getExtension(), callQueueAgent.getExtension(),
+                        tier.getLevel(), tier.getPosition()));
+            }
+        }
     }
 
     private FreeswitchApi getFsApi() {

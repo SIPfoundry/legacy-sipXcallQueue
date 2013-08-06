@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.Query;
 import org.sipfoundry.sipxconfig.alias.AliasManager;
 import org.sipfoundry.sipxconfig.cfgmgt.ConfigManager;
@@ -331,8 +332,19 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
             throw new NameInUseException(callQueueAgentTypeName, name);
         }
         boolean isNew = callQueueAgent.isNew();
+        List<Integer> queuesBefore = new ArrayList<Integer>();
+        if (!isNew) {
+            queuesBefore = getCallQueueIds(callQueueAgent.getId());
+        }
         getHibernateTemplate().saveOrUpdate(callQueueAgent);
+        getHibernateTemplate().flush();
+        List<Integer> queuesAfter = getCallQueueIds(callQueueAgent.getId());
+        Collection<Integer> queuesToReload = CollectionUtils.union(queuesBefore, queuesAfter);
         m_fsDeployer.deployAgent(callQueueAgent, isNew);
+        for (Integer callQueueId : queuesToReload) {
+            CallQueue queue = getHibernateTemplate().load(CallQueue.class, callQueueId);
+            m_fsDeployer.deployTiers(queue, callQueueAgent);
+        }
     }
 
     public CallQueueAgent loadCallQueueAgent(Integer id) { // Tested
@@ -397,6 +409,18 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
         Query query = getSession().createSQLQuery(
                 "SELECT DISTINCT t.call_queue_agent_id FROM call_queue_tier t WHERE t.freeswitch_ext_id = :"
                         + QUERY_PARAM_QUEUE_ID).setParameter(QUERY_PARAM_QUEUE_ID, callqueueid.intValue());
+        List<Integer> result = query.list();
+        return result;
+    }
+
+    private List<Integer> getCallQueueIds(Integer callqueueAgentId) {
+        if (null == callqueueAgentId) {
+            return Collections.EMPTY_LIST;
+        }
+        Query query = getSession().createSQLQuery(
+                "SELECT q.freeswitch_ext_id FROM freeswitch_extension q INNER JOIN call_queue_tier t"
+                        + " ON q.freeswitch_ext_id=t.freeswitch_ext_id where t.call_queue_agent_id=:callqueueagentid")
+                .setParameter(QUERY_PARAM_AGENT_ID, callqueueAgentId);
         List<Integer> result = query.list();
         return result;
     }

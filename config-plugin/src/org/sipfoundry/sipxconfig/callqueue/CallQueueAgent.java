@@ -82,24 +82,13 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
     }
 
     public String getContactUri() {
-        return String.format("sofia/%s/%s@%s",
+        return String.format("sofia/%s/%s@%s;sipx-noroute=VoiceMail;sipx-userforward=false",
                 m_domainManager.getDomainName(), getExtension(), m_domainManager.getDomainName());
     }
 
     @Override
     public void initialize() {
-        Setting s = getSettings();
-        if (null != s) {
-            Setting s1 = s.getSetting("call-queue-agent/use-agent-defaults");
-            if (null != s1) {
-                Boolean b = (Boolean) s1.getTypedValue();
-                if (null != b) {
-                    if (b) {
-                        addDefaultBeanSettingHandler(new Defaults());
-                    }
-                }
-            }
-        }
+        addDefaultBeanSettingHandler(new Defaults());
     }
 
     @Override
