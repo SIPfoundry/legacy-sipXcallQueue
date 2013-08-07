@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -111,6 +112,7 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
     public void saveSettings(CallQueueSettings settings) {
         m_settingsDao.upsert(settings);
         refreshCallQueueCommands(settings);
+        refreshCallQueueAgents();
     }
 
     @Override
@@ -299,6 +301,16 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
         }
     }
 
+    private void refreshCallQueueAgents() { // Should not be Tested
+        Collection<CallQueueAgent> agents = getCallQueueAgents();
+        for (CallQueueAgent agent : agents) {
+            if ((Boolean) agent.getSettingTypedValue("call-queue-agent/use-agent-defaults")) {
+                // save agents / redeploy configuration to FS
+                saveCallQueueAgent(agent);
+            }
+        }
+    }
+
     private CallQueueCommand newCallQueueCommand() { // Should not be Tested
         CallQueueCommand callqueuecommand = (CallQueueCommand) m_beanFactory.getBean(CallQueueCommand.class);
         return callqueuecommand;
@@ -307,6 +319,7 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
     @Override
     public void saveCallQueueCommand(CallQueueCommand callQueueCommand) {
         saveExtension(callQueueCommand);
+        m_replicationManager.replicateEntity(callQueueCommand);
     }
 
     private CallQueueCommand loadCallQueueCommand(Integer id) { // Should not be Tested
@@ -383,6 +396,18 @@ public class CallQueueContextImpl extends SipxHibernateDaoSupport implements Cal
 
     public Collection<CallQueueAgent> getCallQueueAgents() { // Tested
         return getHibernateTemplate().loadAll(CallQueueAgent.class);
+    }
+
+    public Collection<CallQueueAgent> getCallQueueAgentsWithState() {
+        Map<String, String> states = m_fsDeployer.getAgentState();
+        List<CallQueueAgent> agents = getHibernateTemplate().loadAll(CallQueueAgent.class);
+        for (CallQueueAgent agent : agents) {
+            String agentName = "agent-" + agent.getExtension();
+            if (states.containsKey(agentName)) {
+                agent.setState(states.get(agentName));
+            }
+        }
+        return agents;
     }
 
     @Override

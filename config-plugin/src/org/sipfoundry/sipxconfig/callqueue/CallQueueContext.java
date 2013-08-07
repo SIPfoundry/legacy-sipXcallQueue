@@ -76,6 +76,8 @@ public interface CallQueueContext extends FreeswitchExtensionProvider, AliasOwne
 
     Collection<CallQueueAgent> getCallQueueAgents();
 
+    Collection<CallQueueAgent> getCallQueueAgentsWithState();
+
     /* CallQueueTier API */
     List<CallQueue> getAvaiableQueuesForAgent(Integer agentid);
 

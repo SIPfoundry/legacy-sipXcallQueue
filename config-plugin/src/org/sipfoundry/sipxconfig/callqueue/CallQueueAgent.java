@@ -29,6 +29,7 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
     private CallQueueContext m_callQueueContext;
     private CallQueueTiers m_tiers = new CallQueueTiers();
     private DomainManager m_domainManager;
+    private String m_state;
 
     /* Enabled */
     public boolean isEnabled() {
@@ -79,6 +80,13 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
 
     public void setTiers(CallQueueTiers tiers) {
         m_tiers = tiers;
+    }
+
+    public String getState() {
+        return m_state;
+    }
+    public void setState(String state) {
+        m_state = state;
     }
 
     public String getContactUri() {

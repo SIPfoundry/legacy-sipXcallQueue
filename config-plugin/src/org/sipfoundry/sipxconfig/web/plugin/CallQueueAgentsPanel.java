@@ -31,6 +31,7 @@ import org.sipfoundry.sipxconfig.components.SelectMap;
 /*sipXecs WEB settings API imports */
 import org.sipfoundry.sipxconfig.callqueue.CallQueueContext;
 import org.sipfoundry.sipxconfig.callqueue.CallQueueAgent;
+import org.sipfoundry.sipxconfig.callqueue.CallQueueDeployer;
 
 @ComponentClass
 public abstract class CallQueueAgentsPanel extends BaseComponent {
@@ -44,6 +45,9 @@ public abstract class CallQueueAgentsPanel extends BaseComponent {
 
     @InjectObject("spring:callQueueContext")
     public abstract CallQueueContext getCallQueueContext();
+
+    @InjectObject("spring:callQueueDeployer")
+    public abstract CallQueueDeployer getCallQueueDeployer();
 
     @InjectObject("spring:coreContext")
     public abstract CoreContext getCoreContext();

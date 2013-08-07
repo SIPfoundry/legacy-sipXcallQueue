@@ -5,8 +5,8 @@
     </ul>
     <form jwcid="agentsForm@Form" id="agentsForm" delegate="bean:validator">
 	<table jwcid="@common/Table"
-	    source="ognl:CallQueueContext.CallQueueAgents"
-	    columns="literal:* name,extension,description"
+	    source="ognl:CallQueueContext.CallQueueAgentsWithState"
+	    columns="literal:* name,extension,state,description"
 	    class="bean:rowClass.next"
 	    row="ognl:currentRow"
 	    selections="ognl:selections">

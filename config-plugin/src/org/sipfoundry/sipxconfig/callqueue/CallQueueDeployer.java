@@ -16,15 +16,23 @@
  */
 package org.sipfoundry.sipxconfig.callqueue;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.sipfoundry.sipxconfig.address.AddressManager;
 import org.sipfoundry.sipxconfig.commserver.Location;
 import org.sipfoundry.sipxconfig.feature.FeatureManager;
 import org.sipfoundry.sipxconfig.freeswitch.FreeswitchFeature;
 import org.sipfoundry.sipxconfig.freeswitch.api.FreeswitchApi;
 import org.sipfoundry.sipxconfig.xmlrpc.ApiProvider;
+import org.sipfoundry.sipxconfig.xmlrpc.XmlRpcRemoteException;
 import org.springframework.beans.factory.annotation.Required;
 
 public class CallQueueDeployer {
+    private static final Log LOG = LogFactory.getLog(CallQueueDeployer.class);
     private static final String CREATE_AGENT = "agent add agent-%s callback";
     private static final String SET_AGENT_STATUS = "agent set %s agent-%s '%s'";
     private static final String SET_AGENT_PROP = "agent set %s agent-%s %s";
@@ -33,6 +41,7 @@ public class CallQueueDeployer {
     private static final String UNLOAD_QUEUE = "queue unload queue-%s";
     private static final String DELETE_TIER = "tier del queue-%s agent-%s";
     private static final String ADD_TIER = "tier add queue-%s agent-%s %d %d";
+    private static final String AGENT_LIST = "agent list";
     private ApiProvider<FreeswitchApi> m_freeswitchApiProvider;
     private FeatureManager m_featureManager;
     private AddressManager m_addressManager;
@@ -82,6 +91,26 @@ public class CallQueueDeployer {
                         tier.getLevel(), tier.getPosition()));
             }
         }
+    }
+
+    public Map<String, String> getAgentState() {
+        Map<String, String> agentStates = new HashMap<String, String>();
+        try {
+            String result = getFsApi().callcenter_config(AGENT_LIST);
+            if (result != null) {
+                String[] lines = result.split("\\r?\\n");
+                for (String line : lines) {
+                    String[] tokens = StringUtils.split(line, "|");
+                    if (tokens != null && tokens.length > 7) {
+                        agentStates.put(tokens[0], tokens[4] + " (" + tokens[5] + ")");
+                    }
+                }
+            }
+        } catch (XmlRpcRemoteException xrre) {
+            LOG.error("Cannot retrieve agent status" + xrre.getMessage());
+        }
+        return agentStates;
+
     }
 
     private FreeswitchApi getFsApi() {
