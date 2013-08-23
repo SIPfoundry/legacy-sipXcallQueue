@@ -93,4 +93,8 @@ public abstract class CallQueueAgentsPanel extends BaseComponent {
             getCallQueueContext().deleteCallQueueAgents(selectedRows);
         }
     }
+
+    public void setWaitingState(String extension) {
+        getCallQueueDeployer().setAgentStateToWaiting(extension);
+    }
 }

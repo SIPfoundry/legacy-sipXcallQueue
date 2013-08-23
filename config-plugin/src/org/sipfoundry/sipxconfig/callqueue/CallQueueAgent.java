@@ -12,6 +12,7 @@ package org.sipfoundry.sipxconfig.callqueue;
 import java.util.Arrays;
 import java.util.Collection;
 
+import org.apache.commons.lang.StringUtils;
 import org.sipfoundry.sipxconfig.cfgmgt.DeployConfigOnEdit;
 import org.sipfoundry.sipxconfig.domain.DomainManager;
 import org.sipfoundry.sipxconfig.feature.Feature;
@@ -87,6 +88,10 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
     }
     public void setState(String state) {
         m_state = state;
+    }
+
+    public boolean isInIdleState() {
+        return StringUtils.contains(m_state, "Idle");
     }
 
     public String getContactUri() {

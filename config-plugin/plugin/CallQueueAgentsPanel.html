@@ -13,6 +13,12 @@
 	    <span jwcid="nameColumnValue@Block">
 		<a jwcid="editRowLink@DirectLink" listener="listener:edit" parameters="ognl:currentRow.id"><span jwcid="@Insert" value="ognl:currentRow.name"/></a>
 	    </span>
+	    <span jwcid="stateColumnValue@Block">
+		  <span jwcid="@Insert" value="ognl:currentRow.state"/>&nbsp;
+		  <span jwcid="@If" renderTag="false" condition="ognl:currentRow.isInIdleState">
+		    <a jwcid="changeToWaiting@DirectLink" listener="listener:setWaitingState" parameters="ognl:currentRow.extension"><span key="change.to.waiting">Change to waiting state</span></a>
+		  </span>
+	    </span>
 	</table>
 	<ul class="component-submit">
 	    <li>

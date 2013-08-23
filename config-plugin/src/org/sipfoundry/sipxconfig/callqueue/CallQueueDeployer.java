@@ -71,6 +71,10 @@ public class CallQueueDeployer {
         getFsApi().callcenter_config(String.format(DELETE_AGENT, extension));
     }
 
+    public void setAgentStateToWaiting(String extension) {
+        getFsApi().callcenter_config(String.format(SET_AGENT_PROP, "state", extension, "Waiting"));
+    }
+
     public void reloadQueue(String extension) {
         getFsApi().callcenter_config(String.format(RELOAD_QUEUE, extension));
     }
@@ -100,9 +104,9 @@ public class CallQueueDeployer {
             if (result != null) {
                 String[] lines = result.split("\\r?\\n");
                 for (String line : lines) {
-                    String[] tokens = StringUtils.split(line, "|");
+                    String[] tokens = StringUtils.splitPreserveAllTokens(line, "|");
                     if (tokens != null && tokens.length > 7) {
-                        agentStates.put(tokens[0], tokens[4] + " (" + tokens[5] + ")");
+                        agentStates.put(tokens[0], tokens[5] + " (" + tokens[6] + ")");
                     }
                 }
             }
