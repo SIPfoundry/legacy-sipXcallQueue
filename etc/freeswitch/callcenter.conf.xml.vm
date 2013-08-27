@@ -18,8 +18,6 @@
         <param name="tier-rule-wait-second" value="${queue.tierRuleWaitSecond}"/>
         <param name="tier-rule-wait-multiply-level" value="${queue.tierRuleWaitMultiplyLevel}"/>
         <param name="tier-rule-no-agent-no-wait" value="${queue.tierRuleNoAgentNoWait}"/>
-        <param name="discard-abandoned-after" value="${queue.discardAbandonedAfter}"/>
-        <param name="abandoned-resume-allowed" value="${queue.allowAbandonedResume}"/>
         <param name="max-wait-time" value="${queue.maxWaitTime}"/>
         <param name="max-wait-time-with-no-agent" value="${queue.maxWaitTimeWithNoAgent}"/>
         <param name="max-wait-time-with-no-agent-time-reached" value="${queue.maxWaitTimeWithNoAgentTimeReached}"/>

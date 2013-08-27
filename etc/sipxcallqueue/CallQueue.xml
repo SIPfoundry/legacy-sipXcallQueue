@@ -53,10 +53,6 @@
 	<setting name="tier-rule-wait-second"><type><integer/></type><value>10</value></setting>
 	<setting name="tier-rule-wait-multiply-level"><type><boolean/></type><value>1</value></setting>
 	<setting name="tier-rule-no-agent-no-wait"><type><boolean/></type><value>1</value></setting>
-
-	<setting name="discard-abandoned-after"><type><integer/></type><value>0</value></setting>
-	<setting name="abandoned-resume-allowed"><type><boolean/></type><value>1</value></setting>
-
 	<setting name="max-wait-time"><type><integer/></type><value>0</value></setting>
 	<setting name="max-wait-time-with-no-agent"><type><integer/></type><value>0</value></setting>
 	<setting name="max-wait-time-with-no-agent-time-reached"><type><integer/></type><value>5</value></setting>

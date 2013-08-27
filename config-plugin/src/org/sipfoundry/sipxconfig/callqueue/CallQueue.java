@@ -117,14 +117,6 @@ public class CallQueue extends CallQueueExtension {
         return (Boolean) getSettingTypedValue("call-queue/tier-rule-no-agent-no-wait");
     }
 
-    public Integer getDiscardAbandonedAfter() {
-        return (Integer) getSettingTypedValue("call-queue/discard-abandoned-after");
-    }
-
-    public Boolean getAllowAbandonedResume() {
-        return (Boolean) getSettingTypedValue("call-queue/abandoned-resume-allowed");
-    }
-
     public Integer getMaxWaitTime() {
         return (Integer) getSettingTypedValue("call-queue/max-wait-time");
     }
