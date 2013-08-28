@@ -47,6 +47,7 @@
 	<setting name="welcome-audio"><type refid="type_upload-music"/></setting>
 	<setting name="goodbye-audio"><type refid="type_upload-music"/></setting>
 	<setting name="moh-sound"><type refid="type_upload-music"/></setting>
+	<setting name="transfer-on-timeout"><type><string/></type><value></value></setting>
 	<setting name="record-calls"><type><boolean/></type><value>1</value></setting>
 	<setting name="record-calls-directory"><type><string/></type><value></value></setting>
 	<setting name="tier-rules-apply"><type><boolean/></type><value>1</value></setting>

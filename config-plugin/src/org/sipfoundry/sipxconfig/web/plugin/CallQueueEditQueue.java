@@ -84,6 +84,8 @@ public abstract class CallQueueEditQueue extends PageWithCallback implements Pag
     private void saveValid() {
         CallQueueContext context = getCallQueueContext();
         CallQueue callQueue = getCallQueue();
+        // call set extension - hack to regenerate FS dialplan
+        callQueue.setExtension(callQueue.getExtension());
         context.saveCallQueue(callQueue);
         Integer id = getCallQueue().getId();
         setCallQueueId(id);

@@ -56,6 +56,10 @@ public class CallQueue extends CallQueueExtension {
         if (null != goodbyeAudio) {
             actions.add(createAction(PLAYBACK, m_promptsDirectory + DELIM + goodbyeAudio));
         }
+        String transferTo = (String) getSettingTypedValue("call-queue/transfer-on-timeout"); 
+        if (null != transferTo) {
+            actions.add(createAction("bridge", "sofia/$${domain}/" + transferTo + "@$${domain}"));
+        }
         actions.add(createAction("hangup", null));
         condition.setExpression(extension);
         condition.setActions(actions);
