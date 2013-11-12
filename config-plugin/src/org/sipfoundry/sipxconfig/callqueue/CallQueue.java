@@ -25,6 +25,7 @@ import org.sipfoundry.sipxconfig.setting.type.SettingType;
 public class CallQueue extends CallQueueExtension {
     private static final String RECORD_DIR = "call-queue/record-calls-directory";
     private static final String PLAYBACK = "playback";
+    private static final String QUEUE_NAME = "(%s) - ";
     private static final String DELIM = "/";
     private String m_promptsDirectory;
     private String m_mohDirectory;
@@ -47,6 +48,10 @@ public class CallQueue extends CallQueueExtension {
         }
         Set<FreeswitchAction> actions = new LinkedHashSet<FreeswitchAction>();
         actions.add(createAction("set", "hangup_after_bridge=true"));
+        String name = getName();
+        if (StringUtils.isNotBlank(name)) {
+            actions.add(createAction("set", "cc_outbound_cid_name_prefix=" + String.format(QUEUE_NAME, name)));
+        }
         String welcomeAudio = (String) getSettingTypedValue("call-queue/welcome-audio");
         if (null != welcomeAudio) {
             actions.add(createAction(PLAYBACK, m_promptsDirectory + DELIM + welcomeAudio));
