@@ -52,13 +52,19 @@ public class CallQueue extends CallQueueExtension {
         if (StringUtils.isNotBlank(name)) {
             actions.add(createAction("set", "cc_outbound_cid_name_prefix=" + String.format(QUEUE_NAME, name)));
         }
+        boolean answered = false;
         String welcomeAudio = (String) getSettingTypedValue("call-queue/welcome-audio");
         if (null != welcomeAudio) {
+            answered = true;
+            actions.add(getAnswerAction());
             actions.add(createAction(PLAYBACK, m_promptsDirectory + DELIM + welcomeAudio));
         }
         actions.add(createAction("callcenter", String.format("queue-%s", extension)));
         String goodbyeAudio = (String) getSettingTypedValue("call-queue/goodbye-audio");
         if (null != goodbyeAudio) {
+            if (!answered) {
+                actions.add(getAnswerAction()); 
+            }
             actions.add(createAction(PLAYBACK, m_promptsDirectory + DELIM + goodbyeAudio));
         }
         String transferTo = (String) getSettingTypedValue("call-queue/transfer-on-timeout"); 
@@ -69,6 +75,12 @@ public class CallQueue extends CallQueueExtension {
         condition.setExpression(extension);
         condition.setActions(actions);
         addCondition(condition);
+    }
+
+    private FreeswitchAction getAnswerAction() {
+        FreeswitchAction answer = new FreeswitchAction();
+        answer.setApplication("answer");
+        return answer;
     }
 
     @Override
