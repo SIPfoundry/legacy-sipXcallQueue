@@ -32,12 +32,11 @@ public abstract class CallQueueEditQueue extends PageWithCallback implements Pag
     @InjectObject("spring:callQueueContext")
     public abstract CallQueueContext getCallQueueContext();
 
-    @Persist
+    @Persist("client")
     public abstract Integer getCallQueueId();
 
     public abstract void setCallQueueId(Integer id);
 
-    @Persist
     public abstract CallQueue getCallQueue();
 
     public abstract void setCallQueue(CallQueue callQueue);
