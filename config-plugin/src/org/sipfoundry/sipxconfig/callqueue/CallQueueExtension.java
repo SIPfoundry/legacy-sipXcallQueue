@@ -180,6 +180,11 @@ public class CallQueueExtension extends FreeswitchExtension implements Replicabl
     }
 
     @Override
+    public boolean isReplicationEnabled() {
+        return true;
+    }
+
+    @Override
     public Map<String, Object> getMongoProperties(String domain) {
         return Collections.emptyMap();
     }
