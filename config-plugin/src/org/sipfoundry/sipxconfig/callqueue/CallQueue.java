@@ -72,7 +72,7 @@ public class CallQueue extends CallQueueExtension {
             actions.add(createAction("bridge", "sofia/$${domain}/" + transferTo + "@$${domain}"));
         }
         actions.add(createAction("hangup", null));
-        condition.setExpression(extension);
+        condition.setExpression(String.format("^%s$", extension));
         condition.setActions(actions);
         addCondition(condition);
     }
