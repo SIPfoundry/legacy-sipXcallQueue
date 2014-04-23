@@ -5,7 +5,7 @@
  * Contributors retain copyright to elements licensed under a Contributor Agreement.
  * Licensed to the User under the LGPL license.
  *
-*/
+ */
 
 package org.sipfoundry.sipxconfig.callqueue;
 
@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Required;
 
 public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEdit {
 
+    private static String CALL_TIMEOUT = "call-queue-agent/call-timeout";
     private String m_name;
     private String m_extension;
     private String m_description;
@@ -36,10 +37,12 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
     public boolean isEnabled() {
         return true;
     }
+
     /* Name */
     public String getName() {
         return m_name;
     }
+
     public void setName(String name) {
         m_name = name;
     }
@@ -48,6 +51,7 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
     public String getExtension() {
         return m_extension;
     }
+
     public void setExtension(String extension) {
         m_extension = extension;
     }
@@ -86,6 +90,7 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
     public String getState() {
         return m_state;
     }
+
     public void setState(String state) {
         m_state = state;
     }
@@ -95,8 +100,9 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
     }
 
     public String getContactUri() {
-        return String.format("sofia/%s/%s@%s;sipx-noroute=VoiceMail;sipx-userforward=false",
-                m_domainManager.getDomainName(), getExtension(), m_domainManager.getDomainName());
+        return String.format("[call_timeout=%s]sofia/%s/%s@%s;sipx-noroute=VoiceMail;sipx-userforward=false",
+                getSettingValue(CALL_TIMEOUT), m_domainManager.getDomainName(), getExtension(),
+                m_domainManager.getDomainName());
     }
 
     @Override
@@ -152,6 +158,11 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
         @SettingEntry(path = "call-queue-agent/no-answer-delay-time")
         public String getDefaultNoAnswerDelayTime() {
             return getCallQueueContext().getSettings().getSettingValue("call-queue-agent/no-answer-delay-time");
+        }
+
+        @SettingEntry(path = "call-queue-agent/call-timeout")
+        public String getDefaultCallTimeout() {
+            return getCallQueueContext().getSettings().getSettingValue(CALL_TIMEOUT);
         }
     }
 
