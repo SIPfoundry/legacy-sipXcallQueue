@@ -100,9 +100,8 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
     }
 
     public String getContactUri() {
-        return String.format("[call_timeout=%s]sofia/%s/%s@%s;sipx-noroute=VoiceMail;sipx-userforward=false",
-                getSettingValue(CALL_TIMEOUT), m_domainManager.getDomainName(), getExtension(),
-                m_domainManager.getDomainName());
+        return String.format("sofia/%s/%s@%s;sipx-noroute=VoiceMail;sipx-userforward=false;sipx-expires=%s",
+                m_domainManager.getDomainName(), getExtension(), m_domainManager.getDomainName(), getSettingValue(CALL_TIMEOUT));
     }
 
     @Override
