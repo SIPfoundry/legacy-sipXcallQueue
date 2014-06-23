@@ -13,7 +13,7 @@ Url: http://www.sipfoundry.org
 
 BuildRequires: automake
 BuildRequires: libxml2
-BuildRequires: java-devel >= 1.7
+BuildRequires: java-1.7.0-openjdk-devel
 BuildRequires: sipxcommons >= %version
 BuildRequires: sipxconfig >= %version
 Requires: sipxconfig >= %version
