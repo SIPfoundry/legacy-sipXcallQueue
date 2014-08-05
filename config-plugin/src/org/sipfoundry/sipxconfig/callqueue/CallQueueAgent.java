@@ -100,8 +100,15 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
     }
 
     public String getContactUri() {
-        return String.format("sofia/%s/%s@%s;sipx-noroute=VoiceMail;sipx-userforward=false;sipx-expires=%s",
-                m_domainManager.getDomainName(), getExtension(), m_domainManager.getDomainName(), getSettingValue(CALL_TIMEOUT));
+        boolean callForwarding = (Boolean) getSettingTypedValue("call-queue-agent/follow-call-forwarding");
+        StringBuilder contactFormat = new StringBuilder();
+        contactFormat.append("sofia/%s/%s@%s;sipx-noroute=VoiceMail;");
+        if (!callForwarding) {
+            contactFormat.append("sipx-userforward=false;");
+        }
+        contactFormat.append("sipx-expires=%s");
+        return String.format(contactFormat.toString(), m_domainManager.getDomainName(), getExtension(),
+                m_domainManager.getDomainName(), getSettingValue(CALL_TIMEOUT));
     }
 
     @Override
