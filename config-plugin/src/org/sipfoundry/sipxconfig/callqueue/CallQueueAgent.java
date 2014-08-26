@@ -20,9 +20,10 @@ import org.sipfoundry.sipxconfig.freeswitch.FreeswitchFeature;
 import org.sipfoundry.sipxconfig.setting.BeanWithSettings;
 import org.sipfoundry.sipxconfig.setting.Setting;
 import org.sipfoundry.sipxconfig.setting.SettingEntry;
+import org.sipfoundry.sipxconfig.systemaudit.SystemAuditable;
 import org.springframework.beans.factory.annotation.Required;
 
-public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEdit {
+public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEdit, SystemAuditable {
 
     private static String CALL_TIMEOUT = "call-queue-agent/call-timeout";
     private String m_name;
@@ -179,5 +180,13 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
         dst.setTiers(newTiers);
         // Copy bean settings
         dst.setSettings(getSettings());
+    }
+    @Override
+    public String getEntityIdentifier() {
+        return getName();
+    }
+    @Override
+    public String getConfigChangeType() {
+        return CallQueueAgent.class.getSimpleName();
     }
 }

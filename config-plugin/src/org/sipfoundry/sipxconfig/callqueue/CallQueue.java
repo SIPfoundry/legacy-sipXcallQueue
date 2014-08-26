@@ -21,8 +21,9 @@ import org.sipfoundry.sipxconfig.setting.AbstractSettingVisitor;
 import org.sipfoundry.sipxconfig.setting.Setting;
 import org.sipfoundry.sipxconfig.setting.type.FileSetting;
 import org.sipfoundry.sipxconfig.setting.type.SettingType;
+import org.sipfoundry.sipxconfig.systemaudit.SystemAuditable;
 
-public class CallQueue extends CallQueueExtension {
+public class CallQueue extends CallQueueExtension implements SystemAuditable {
     private static final String RECORD_DIR = "call-queue/record-calls-directory";
     private static final String PLAYBACK = "playback";
     private static final String QUEUE_NAME = "(%s) - ";
@@ -176,5 +177,21 @@ public class CallQueue extends CallQueueExtension {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean isReplicationEnabled() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public String getEntityIdentifier() {
+        return getAlias();
+    }
+
+    @Override
+    public String getConfigChangeType() {
+        return CallQueue.class.getSimpleName();
     }
 }
