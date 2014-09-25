@@ -15,7 +15,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import org.sipfoundry.sipxconfig.common.CoreContext;
+import org.sipfoundry.sipxconfig.commserver.LocationsManager;
+import org.sipfoundry.sipxconfig.feature.FeatureManager;
+import org.sipfoundry.sipxconfig.freeswitch.FreeswitchFeature;
+import org.sipfoundry.sipxconfig.registrar.Registrar;
 import org.sipfoundry.sipxconfig.setting.Setting;
 import org.sipfoundry.sipxconfig.test.IntegrationTestCase;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -23,7 +26,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class CallQueueContextImplTestIntegration extends IntegrationTestCase {
     private CallQueueContext m_callQueueContext;
-    private CoreContext m_coreContext;
+    private FeatureManager m_featureManager;
+    private LocationsManager m_locationsManager;
 
     @Override
     protected ConfigurableApplicationContext createApplicationContext(String[] locations) {
@@ -44,6 +48,11 @@ public class CallQueueContextImplTestIntegration extends IntegrationTestCase {
     protected void onSetUpInTransaction() throws Exception {
         super.onSetUpInTransaction();
         loadDataSetXml("callqueue/CallQueueSeed.xml");
+        loadDataSetXml("commserver/seedLocations.xml");
+        m_featureManager.enableLocationFeature(Registrar.FEATURE, m_locationsManager.getPrimaryLocation(), true);
+        m_featureManager.enableLocationFeature(FreeswitchFeature.FEATURE, m_locationsManager.getPrimaryLocation(), true);       
+        m_featureManager.enableLocationFeature(CallQueueContext.FEATURE, m_locationsManager.getPrimaryLocation(), true);
+        
     }
 
 // Utility methods
@@ -195,5 +204,13 @@ public class CallQueueContextImplTestIntegration extends IntegrationTestCase {
     private void compareClonedQueue(CallQueue o, CallQueue c) {
         assertEquals(null, c.getDid());
         compareSettingsForCloned(o.getSettings(), c.getSettings());
+    }
+
+    public void setFeatureManager(FeatureManager featureManager) {
+        m_featureManager = featureManager;
+    }
+
+    public void setLocationsManager(LocationsManager locationsManager) {
+        m_locationsManager = locationsManager;
     }
 }

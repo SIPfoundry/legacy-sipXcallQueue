@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Required;
 
 public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEdit, SystemAuditable {
 
-    private static String CALL_TIMEOUT = "call-queue-agent/call-timeout";
+    private static String s_callTimeout = "call-queue-agent/call-timeout";
     private String m_name;
     private String m_extension;
     private String m_description;
@@ -109,7 +109,7 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
         }
         contactFormat.append("sipx-expires=%s");
         return String.format(contactFormat.toString(), m_domainManager.getDomainName(), getExtension(),
-                m_domainManager.getDomainName(), getSettingValue(CALL_TIMEOUT));
+                m_domainManager.getDomainName(), getSettingValue(s_callTimeout));
     }
 
     @Override
@@ -169,7 +169,7 @@ public class CallQueueAgent extends BeanWithSettings implements DeployConfigOnEd
 
         @SettingEntry(path = "call-queue-agent/call-timeout")
         public String getDefaultCallTimeout() {
-            return getCallQueueContext().getSettings().getSettingValue(CALL_TIMEOUT);
+            return getCallQueueContext().getSettings().getSettingValue(s_callTimeout);
         }
     }
 

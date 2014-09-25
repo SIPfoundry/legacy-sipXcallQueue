@@ -5,7 +5,7 @@
  * Contributors retain copyright to elements licensed under a Contributor Agreement.
  * Licensed to the User under the LGPL license.
  *
-*/
+ */
 
 package org.sipfoundry.sipxconfig.callqueue;
 
@@ -28,6 +28,7 @@ import org.sipfoundry.sipxconfig.cfgmgt.DeployConfigOnEdit;
 import org.sipfoundry.sipxconfig.common.Replicable;
 import org.sipfoundry.sipxconfig.common.SipUri;
 import org.sipfoundry.sipxconfig.common.UserException;
+import org.sipfoundry.sipxconfig.commserver.Location;
 import org.sipfoundry.sipxconfig.commserver.imdb.AliasMapping;
 import org.sipfoundry.sipxconfig.commserver.imdb.DataSet;
 import org.sipfoundry.sipxconfig.feature.Feature;
@@ -69,12 +70,12 @@ public class CallQueueExtension extends FreeswitchExtension implements Replicabl
         return null;
     }
 
-    //We want to allow regular expressions to be used in extension field.
-    //The regex pattern must start with 1 capture group and that capture group to be
-    //the real extension to be sent to the Freeswitch node in the dial string.
-    //We will validate: the regular expression to start with 1 group and the capture group to be
-    //a valid extension. That extension we will validate as alias.
-    //we will validate it only if the user will check the extension as a regular expression.
+    // We want to allow regular expressions to be used in extension field.
+    // The regex pattern must start with 1 capture group and that capture group to be
+    // the real extension to be sent to the Freeswitch node in the dial string.
+    // We will validate: the regular expression to start with 1 group and the capture group to be
+    // a valid extension. That extension we will validate as alias.
+    // we will validate it only if the user will check the extension as a regular expression.
     public String getCapturedExtension() {
         String extension = getExtension();
         if (extension == null) {
@@ -82,7 +83,7 @@ public class CallQueueExtension extends FreeswitchExtension implements Replicabl
         }
         String validPhonePattern = ".+";
         if (getNumberCondition().isRegex()) {
-            //is the extension a valid regular expression?
+            // is the extension a valid regular expression?
             try {
                 Pattern isValidPattern = Pattern.compile(extension);
             } catch (PatternSyntaxException e) {
@@ -93,8 +94,8 @@ public class CallQueueExtension extends FreeswitchExtension implements Replicabl
             if (!m.matches()) {
                 throw new UserException("&error.regex.no.valid.group");
             }
-            //we are sure there's a capturing group with index 1
-            //otherwise, the previous match would fail
+            // we are sure there's a capturing group with index 1
+            // otherwise, the previous match would fail
             extension = m.group(1);
         } else {
             if (!Pattern.matches(validPhonePattern, extension)) {
@@ -141,21 +142,26 @@ public class CallQueueExtension extends FreeswitchExtension implements Replicabl
     public Collection<AliasMapping> getAliasMappings(String domainName) {
         List<AliasMapping> mappings = new ArrayList<AliasMapping>();
         if (null != m_addressManager) {
-            Address address = m_addressManager.getSingleAddress(FreeswitchFeature.SIP_ADDRESS);
-            if (null != address) {
-                String extension = getCapturedExtension();
-                String sipUri = SipUri.format(extension, address.getAddress(), address.getPort());
-                String sipUriNoQuote = SipUri.format(extension, address.getAddress(), address.getPort(), false);
-                AliasMapping nameMapping = new AliasMapping(getName(), sipUriNoQuote, ALIAS_RELATION);
-                AliasMapping lineMapping = new AliasMapping(extension, sipUri, ALIAS_RELATION);
-                mappings.addAll(Arrays.asList(nameMapping, lineMapping));
-                if (getAlias() != null) {
-                    AliasMapping aliasMapping = new AliasMapping(getAlias(), sipUri, ALIAS_RELATION);
-                    mappings.add(aliasMapping);
-                }
-                if (getDid() != null) {
-                    AliasMapping didMapping = new AliasMapping(getDid(), sipUri, ALIAS_RELATION);
-                    mappings.add(didMapping);
+            List<Location> cqLocations = m_addressManager.getFeatureManager().getLocationsForEnabledFeature(
+                    CallQueueContext.FEATURE);
+            if (!cqLocations.isEmpty()) {
+                Address address = m_addressManager.getSingleAddress(FreeswitchFeature.SIP_ADDRESS,
+                        cqLocations.get(0));
+                if (null != address) {
+                    String extension = getCapturedExtension();
+                    String sipUri = SipUri.format(extension, address.getAddress(), address.getPort());
+                    String sipUriNoQuote = SipUri.format(extension, address.getAddress(), address.getPort(), false);
+                    AliasMapping nameMapping = new AliasMapping(getName(), sipUriNoQuote, ALIAS_RELATION);
+                    AliasMapping lineMapping = new AliasMapping(extension, sipUri, ALIAS_RELATION);
+                    mappings.addAll(Arrays.asList(nameMapping, lineMapping));
+                    if (getAlias() != null) {
+                        AliasMapping aliasMapping = new AliasMapping(getAlias(), sipUri, ALIAS_RELATION);
+                        mappings.add(aliasMapping);
+                    }
+                    if (getDid() != null) {
+                        AliasMapping didMapping = new AliasMapping(getDid(), sipUri, ALIAS_RELATION);
+                        mappings.add(didMapping);
+                    }
                 }
             }
         }

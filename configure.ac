@@ -10,6 +10,7 @@ m4_include([config/java2.m4])
 AC_PROG_JAVA_CC([javac])
 AC_PROG_JAVA([java])
 PROG_JAVA_DEP
+CHECK_POSTGRES
 AM_CONDITIONAL(IS_RPMBUILD, test x$enable_rpmbuild = xyes)
 
 AC_CONFIG_FILES([

@@ -24,6 +24,7 @@ import org.sipfoundry.sipxconfig.setting.type.SettingType;
 import org.sipfoundry.sipxconfig.systemaudit.SystemAuditable;
 
 public class CallQueue extends CallQueueExtension implements SystemAuditable {
+    private static final String SET = "set";
     private static final String RECORD_DIR = "call-queue/record-calls-directory";
     private static final String PLAYBACK = "playback";
     private static final String QUEUE_NAME = "(%s) - ";
@@ -48,10 +49,10 @@ public class CallQueue extends CallQueueExtension implements SystemAuditable {
             condition = getNumberCondition();
         }
         Set<FreeswitchAction> actions = new LinkedHashSet<FreeswitchAction>();
-        actions.add(createAction("set", "hangup_after_bridge=true"));
+        actions.add(createAction(SET, "hangup_after_bridge=true"));
         String name = getName();
         if (StringUtils.isNotBlank(name)) {
-            actions.add(createAction("set", "cc_outbound_cid_name_prefix=" + String.format(QUEUE_NAME, name)));
+            actions.add(createAction(SET, "cc_outbound_cid_name_prefix=" + String.format(QUEUE_NAME, name)));
         }
         boolean answered = false;
         String welcomeAudio = (String) getSettingTypedValue("call-queue/welcome-audio");
@@ -64,11 +65,11 @@ public class CallQueue extends CallQueueExtension implements SystemAuditable {
         String goodbyeAudio = (String) getSettingTypedValue("call-queue/goodbye-audio");
         if (null != goodbyeAudio) {
             if (!answered) {
-                actions.add(getAnswerAction()); 
+                actions.add(getAnswerAction());
             }
             actions.add(createAction(PLAYBACK, m_promptsDirectory + DELIM + goodbyeAudio));
         }
-        String transferTo = (String) getSettingTypedValue("call-queue/transfer-on-timeout"); 
+        String transferTo = (String) getSettingTypedValue("call-queue/transfer-on-timeout");
         if (null != transferTo) {
             actions.add(createAction("bridge", "sofia/$${domain}/" + transferTo + "@$${domain}"));
         }

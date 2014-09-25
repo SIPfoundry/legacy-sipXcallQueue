@@ -17,3 +17,4 @@ config/ltmain.sh
 config/missing
 configure
 bin.eclipse
+build

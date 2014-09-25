@@ -6,7 +6,7 @@ EXTRA_DIST = \
 	$(test_SRC)
 
 precommit : check
-	$(MAKE) sipxconfig-reset-integration-test check-integration
+	$(MAKE) sipxconfig-reset-integration-test plugin-reset-integration-test check-integration
 
 noinst_DATA = javac-test
 
@@ -18,6 +18,7 @@ test_DEPS = \
 	../classes \
 	$(srcdir) \
 	$(srcdir)/../src \
+	$(abspath $(top_srcdir)/../sipXconfig/neoconf/test/) \
 	$(call JavaDep, @SIPX_JAVADIR@/sipXcommons @SIPX_JAVADIR@/sipXconfig,$(test_PKGS))
 
 test_SRC = $(shell cd $(srcdir); find . \( \
