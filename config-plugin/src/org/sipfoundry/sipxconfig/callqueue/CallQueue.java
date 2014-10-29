@@ -181,12 +181,6 @@ public class CallQueue extends CallQueueExtension implements SystemAuditable {
     }
 
     @Override
-    public boolean isReplicationEnabled() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
     public String getEntityIdentifier() {
         return getAlias();
     }
